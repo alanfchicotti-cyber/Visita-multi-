@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b5cab">
+<title>UTI Multidisciplinar Pro</title>
+<style>
+:root{--primary:#0b5cab;--dark:#12304a;--bg:#f4f7fb;--card:#fff;--line:#dbe4ee;--text:#17212b;--muted:#607080;--ok:#168a52;--warn:#c47b00;--danger:#c62828}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+header{background:linear-gradient(135deg,#0b5cab,#12304a);color:#fff;padding:18px 16px;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:22px}header small{opacity:.85}
+nav{display:flex;gap:7px;overflow:auto;padding:10px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:76px;z-index:4}
+nav button{border:0;background:#edf3f9;color:var(--dark);padding:9px 12px;border-radius:20px;white-space:nowrap;font-weight:700}
+nav button.active{background:var(--primary);color:#fff}
+main{max-width:1200px;margin:auto;padding:14px}
+section{display:none}section.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:0 2px 8px #16324d0d;margin-bottom:12px}
+h2{font-size:18px;margin:0 0 12px;color:var(--dark)}h3{font-size:15px;margin:0 0 10px;color:var(--dark)}
+label{font-size:12px;font-weight:700;color:var(--muted);display:block;margin:7px 0 4px}
+input,select,textarea{width:100%;padding:9px;border:1px solid #cbd7e3;border-radius:8px;background:#fff;font-size:14px}
+textarea{min-height:85px;resize:vertical}
+button.primary{background:var(--primary);color:#fff;border:0;padding:10px 14px;border-radius:8px;font-weight:700;cursor:pointer}
+button.secondary{background:#edf3f9;border:0;padding:10px 14px;border-radius:8px;font-weight:700;color:var(--dark);cursor:pointer}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.result{background:#eef7ff;border-left:4px solid var(--primary);padding:12px;border-radius:8px;margin-top:10px}
+.big{font-size:26px;font-weight:800;color:var(--primary)}
+.badge{display:inline-block;padding:4px 8px;border-radius:12px;background:#edf3f9;margin:3px;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left}th{background:#f0f5fa}
+.warning{font-size:12px;color:#7a4a00;background:#fff6df;padding:9px;border-radius:8px;margin-top:10px}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
+.hidden{display:none!important}
+@media print{nav,header .no-print,.actions,footer{display:none}body{background:#fff}section{display:none!important}section.active{display:block}.card{box-shadow:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1>UTI Multidisciplinar Pro</h1>
+  <small>Visita multiprofissional • Scores • SAPS 3 • Evolução • Pendências</small>
+</header>
+<nav id="nav">
+<button class="active" data-tab="dashboard">Dashboard</button>
+<button data-tab="paciente">Paciente</button>
+<button data-tab="visita">Visita</button>
+<button data-tab="sistemas">Sistemas</button>
+<button data-tab="dispositivos">Dispositivos</button>
+<button data-tab="saps">SAPS 3</button>
+<button data-tab="scores">Outros scores</button>
+<button data-tab="balanco">Balanço</button>
+<button data-tab="plano">Plano</button>
+<button data-tab="historico">Histórico</button>
+</nav>
+
+<main><section id="dashboard"><div class="card"><h2>Resumo do paciente</h2><div class="grid">
+<div><b>Paciente:</b> <span id="dashPatient">—</span></div><div><b>Problemas:</b> <span id="dashProblems">—</span></div>
+<div><b>Objetivos:</b> <span id="dashGoals">—</span></div><div><b>Plano:</b> <span id="dashPlan">—</span></div>
+<div><b>Balanço:</b> <span id="dashBalanco">—</span></div><div><b>P/F:</b> <span id="dashPF">—</span></div>
+<div><b>Aminas:</b> <span id="dashAminas">—</span></div><div><b>Dispositivos:</b> <span id="dashDevices">—</span></div>
+<div><b>SOFA:</b> <span id="dashSofa">—</span></div><div><b>qSOFA:</b> <span id="dashQsofa">—</span></div>
+<div><b>NEWS2:</b> <span id="dashNews">—</span></div><div><b>SAPS 3:</b> <span id="dashSaps">—</span></div>
+</div></div></section>
+<section id="paciente" class="active">
+<div class="card"><h2>Identificação</h2>
+<div class="grid">
+<div><label>Nome / identificação</label><input id="nome"></div>
+<div><label>Leito</label><input id="leito"></div>
+<div><label>Data</label><input id="data" type="date"></div>
+<div><label>Sexo</label><select id="sexo"><option value="">Selecione</option><option>Masculino</option><option>Feminino</option></select></div>
+<div><label>Idade</label><input id="idade" type="number" min="0"></div>
+<div><label>Peso (kg)</label><input id="peso" type="number" min="0" step=".1"></div>
+</div></div>
+<div class="card"><h2>Diagnósticos / problemas ativos</h2><textarea id="problemas" placeholder="Ex.: choque séptico, insuficiência respiratória, IRA..."></textarea></div>
+</section>
+
+<section id="visita">
+<div class="card"><h2>Checklist multiprofissional</h2>
+<div class="grid">
+<div><h3>Neurológico</h3>
+<label>Glasgow</label><input id="glasgow" type="number" min="3" max="15">
+<label>RASS</label><select id="rass"><option value="">Selecione</option><option>-5</option><option>-4</option><option>-3</option><option>-2</option><option>-1</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+<label>Delirium/CAM-ICU</label><select id="cam"><option>Não avaliado</option><option>Negativo</option><option>Positivo</option></select>
+</div>
+<div><h3>Respiratório</h3>
+<label>Modo ventilatório</label><input id="modo">
+<label>FiO₂ (%)</label><input id="fio2" type="number" min="21" max="100">
+<label>PaO₂ (mmHg)</label><input id="pao2" type="number">
+<label>PEEP (cmH₂O)</label><input id="peep" type="number">
+<label>SpO₂ (%)</label><input id="spo2" type="number">
+</div>
+<div><h3>Hemodinâmico</h3>
+<label>PAS (mmHg)</label><input id="pas" type="number">
+<label>PAD (mmHg)</label><input id="pad" type="number">
+<label>FC (bpm)</label><input id="fc" type="number">
+<label>Noradrenalina (µg/kg/min)</label><input id="norad" type="number" step=".001">
+</div>
+<div><h3>Renal / metabólico</h3>
+<label>Creatinina (mg/dL)</label><input id="creat" type="number" step=".1">
+<label>Diurese (mL/24h)</label><input id="diurese" type="number">
+<label>Na (mEq/L)</label><input id="na" type="number">
+<label>K (mEq/L)</label><input id="k" type="number" step=".1">
+<label>Glicemia (mg/dL)</label><input id="glicemia" type="number">
+</div>
+<div><h3>Infecção / hematologia</h3>
+<label>Temperatura °C</label><input id="temp" type="number" step=".1">
+<label>Leucócitos (mil/mm³)</label><input id="leuco" type="number" step=".1">
+<label>Plaquetas (mil/mm³)</label><input id="plaq" type="number">
+<label>Bilirrubina (mg/dL)</label><input id="bili" type="number" step=".1">
+</div>
+<div><h3>Gastro / nutrição</h3>
+<label>Via de dieta</label><input id="dieta">
+<label>Meta calórica/proteica</label><input id="meta">
+<label>Evacuação</label><input id="evac">
+</div>
+</div>
+<div class="actions"><button class="primary" onclick="calcularScores()">Calcular SOFA / qSOFA / NEWS2</button></div>
+<div id="scoreResult" class="result">Preencha os dados e clique em calcular.</div>
+</div>
+</section>
+
+
+<section id="sistemas">
+<div class="card"><h2>Avaliação por sistemas orgânicos</h2>
+<div class="grid">
+<div><h3>Neurológico</h3>
+<label>Nível de consciência / Glasgow</label><input id="sys_neuro_gcs">
+<label>RASS</label><input id="sys_neuro_rass">
+<label>Pupilas</label><input id="sys_neuro_pupilas">
+<label>Força / déficit focal</label><textarea id="sys_neuro_forca"></textarea>
+<label>Delirium / CAM-ICU</label><select id="sys_neuro_delirium"><option>Não avaliado</option><option>Negativo</option><option>Positivo</option></select>
+</div>
+<div><h3>Respiratório</h3>
+<label>Via aérea / tubo</label><input id="sys_resp_via">
+<label>Modo ventilatório</label><input id="sys_resp_modo">
+<label>FiO₂ (%)</label><input id="sys_resp_fio2">
+<label>PEEP</label><input id="sys_resp_peep">
+<label>SpO₂ / gasometria / P/F</label><textarea id="sys_resp_gaso"></textarea>
+</div>
+<div><h3>Cardiovascular</h3>
+<label>Ritmo / FC</label><input id="sys_card_ritmo">
+<label>PAS/PAD/PAM</label><input id="sys_card_pa">
+<label>Perfusão periférica</label><input id="sys_card_perf">
+<label>Vasopressores/inotrópicos</label><textarea id="sys_card_amines"></textarea>
+</div>
+<div><h3>Renal</h3>
+<label>Creatinina</label><input id="sys_renal_cr">
+<label>Diurese 24h</label><input id="sys_renal_diurese">
+<label>Balanço hídrico</label><input id="sys_renal_balanco">
+<label>TRS/hemodiálise</label><input id="sys_renal_trs">
+</div>
+<div><h3>Gastrointestinal / fígado</h3>
+<label>Dieta / tolerância</label><textarea id="sys_gi_dieta"></textarea>
+<label>Abdome</label><textarea id="sys_gi_abdome"></textarea>
+<label>Evacuação</label><input id="sys_gi_evac">
+<label>Bilirrubina / TGO / TGP / INR</label><textarea id="sys_gi_lab"></textarea>
+</div>
+<div><h3>Hematológico</h3>
+<label>Hb / Ht</label><input id="sys_hem_hb">
+<label>Plaquetas</label><input id="sys_hem_plaq">
+<label>Coagulograma</label><input id="sys_hem_coag">
+<label>Transfusão / sangramento</label><textarea id="sys_hem_sang"></textarea>
+</div>
+<div><h3>Infeccioso</h3>
+<label>Foco infeccioso</label><textarea id="sys_inf_foco"></textarea>
+<label>Culturas</label><textarea id="sys_inf_culturas"></textarea>
+<label>Antimicrobianos / dia de tratamento</label><textarea id="sys_inf_atb"></textarea>
+<label>Temperatura / leucócitos / PCR / PCT</label><textarea id="sys_inf_markers"></textarea>
+</div>
+<div><h3>Endócrino / metabólico</h3>
+<label>Glicemia</label><input id="sys_end_glic">
+<label>Insulina EV / SC</label><input id="sys_end_insulina">
+<label>Na / K / Mg / Ca / P</label><textarea id="sys_end_eletro"></textarea>
+<label>Outras alterações</label><textarea id="sys_end_outros"></textarea>
+</div>
+<div><h3>Pele / musculoesquelético</h3>
+<label>Lesões / feridas / pressão</label><textarea id="sys_pele_lesoes"></textarea>
+<label>Edema</label><input id="sys_pele_edema">
+<label>Mobilidade / força</label><textarea id="sys_pele_mobilidade"></textarea>
+<label>Risco de lesão por pressão / Braden</label><input id="sys_pele_braden">
+</div>
+</div></div>
+</section>
+
+<section id="dispositivos">
+<div class="card"><h2>Dispositivos invasivos e não invasivos</h2>
+<div class="grid">
+<div><h3>Via aérea</h3>
+<label>☐ TOT</label><input id="dev_tot">
+<label>☐ TQT</label><input id="dev_tqt">
+<label>Data de inserção / troca</label><input id="dev_airway_date" type="date">
+<label>Fixação / cuff / secreções</label><textarea id="dev_airway_obs"></textarea>
+</div>
+<div><h3>Acessos vasculares</h3>
+<label>☐ CVC</label><input id="dev_cvc">
+<label>☐ PICC</label><input id="dev_picc">
+<label>☐ Acesso arterial</label><input id="dev_art">
+<label>Data / sítio / aspecto</label><textarea id="dev_vascular_obs"></textarea>
+</div>
+<div><h3>Renal / urinário</h3>
+<label>☐ SVD</label><input id="dev_svd">
+<label>Data de inserção</label><input id="dev_svd_date" type="date">
+<label>☐ Cateter para diálise</label><input id="dev_dialysis">
+<label>Observações</label><textarea id="dev_renal_obs"></textarea>
+</div>
+<div><h3>Gastrointestinal</h3>
+<label>☐ SNG</label><input id="dev_sng">
+<label>☐ SNE</label><input id="dev_sne">
+<label>☐ GTT/Gastrostomia</label><input id="dev_gtt">
+<label>Data / posição / funcionamento</label><textarea id="dev_gi_obs"></textarea>
+</div>
+<div><h3>Drenos / cateteres</h3>
+<label>Dreno torácico</label><input id="dev_chest">
+<label>Drenos cirúrgicos</label><input id="dev_surgical">
+<label>Outros</label><input id="dev_other">
+<label>Débito / aspecto / sítio</label><textarea id="dev_drain_obs"></textarea>
+</div>
+<div><h3>Prevenção e segurança</h3>
+<label>☐ Cabeceira 30–45°</label><input id="dev_head">
+<label>☐ Higiene oral / bundle PAV</label><input id="dev_pav">
+<label>☐ Profilaxia TEV</label><input id="dev_vte">
+<label>☐ Profilaxia úlcera quando indicada</label><input id="dev_gi_proph">
+<label>☐ Necessidade diária de cada dispositivo revisada</label><input id="dev_daily_review">
+</div>
+</div>
+<div class="actions"><button class="primary" onclick="revisarDispositivos()">Revisar dispositivos</button></div>
+<div id="devResult" class="result">Registre os dispositivos e revise diariamente a indicação de permanência.</div>
+</div>
+</section>
+
+<section id="saps">
+<div class="card"><h2>SAPS 3 — primeira hora de UTI</h2>
+<p style="font-size:12px;color:#607080">Preencha os campos abaixo. A pontuação é calculada pelo algoritmo do SAPS 3; a estimativa de mortalidade hospitalar usa a equação logística padrão do modelo geral.</p>
+<div class="grid">
+<div><label>Idade (anos)</label><input id="s_age" type="number"></div>
+<div><label>Pressão arterial sistólica (mmHg)</label><input id="s_pas" type="number"></div>
+<div><label>Frequência cardíaca (bpm)</label><input id="s_fc" type="number"></div>
+<div><label>Temperatura (°C)</label><input id="s_temp" type="number" step=".1"></div>
+<div><label>Glasgow</label><input id="s_gcs" type="number" min="3" max="15"></div>
+<div><label>Leucócitos (mil/mm³)</label><input id="s_wbc" type="number" step=".1"></div>
+<div><label>Plaquetas (mil/mm³)</label><input id="s_plaq" type="number"></div>
+<div><label>Ureia (mg/dL)</label><input id="s_urea" type="number"></div>
+<div><label>Sódio (mEq/L)</label><input id="s_na" type="number"></div>
+<div><label>Potássio (mEq/L)</label><input id="s_k" type="number" step=".1"></div>
+<div><label>Bilirrubina (mg/dL)</label><input id="s_bili" type="number" step=".1"></div>
+<div><label>PaO₂ (mmHg)</label><input id="s_pao2" type="number"></div>
+<div><label>FiO₂ (%)</label><input id="s_fio2" type="number"></div>
+<div><label>Tipo de admissão</label><select id="s_adm"><option>Cirurgia programada</option><option>Cirurgia não programada</option><option>Médica</option></select></div>
+<div><label>Infecção adquirida antes da UTI</label><select id="s_inf"><option>Não</option><option>Sim</option></select></div>
+</div>
+<div class="actions"><button class="primary" onclick="calcularSAPS()">Calcular SAPS 3</button></div>
+<div id="sapsResult" class="result">Resultado aparecerá aqui.</div>
+</div>
+<div class="card"><h2>Outros indicadores</h2>
+<div id="mortalityCards" class="grid">
+<div class="card"><b>SOFA</b><br><span id="sofaMini">—</span></div>
+<div class="card"><b>qSOFA</b><br><span id="qsofaMini">—</span></div>
+<div class="card"><b>NEWS2</b><br><span id="newsMini">—</span></div>
+<div class="card"><b>Glasgow</b><br><span id="gcsMini">—</span></div>
+</div>
+<div class="warning">Scores são ferramentas de estratificação. A mortalidade individual real pode diferir substancialmente. Não usar o aplicativo isoladamente para decisões terapêuticas.</div>
+</div>
+</section>
+
+<section id="scores">
+<div class="card"><h2>Calculadoras rápidas</h2>
+<div class="grid">
+<div class="card"><h3>IMC</h3><label>Peso (kg)</label><input id="imc_peso" type="number"><label>Altura (m)</label><input id="imc_alt" type="number" step=".01"><button class="primary" onclick="imc()">Calcular</button><div id="imcRes" class="result"></div></div>
+<div class="card"><h3>P/F</h3><label>PaO₂</label><input id="pf_pao2" type="number"><label>FiO₂ em decimal (ex.: 0,40)</label><input id="pf_fio2" type="number" step=".01"><button class="primary" onclick="pf()">Calcular</button><div id="pfRes" class="result"></div></div>
+<div class="card"><h3>PAM</h3><label>PAS</label><input id="pam_pas" type="number"><label>PAD</label><input id="pam_pad" type="number"><button class="primary" onclick="pam()">Calcular</button><div id="pamRes" class="result"></div></div>
+<div class="card"><h3>Ânion gap</h3><label>Na</label><input id="ag_na" type="number"><label>Cl</label><input id="ag_cl" type="number"><label>HCO₃</label><input id="ag_hco3" type="number"><button class="primary" onclick="ag()">Calcular</button><div id="agRes" class="result"></div></div>
+<div class="card"><h3>Shock Index</h3><label>FC</label><input id="si_fc" type="number"><label>PAS</label><input id="si_pas" type="number"><button class="primary" onclick="si()">Calcular</button><div id="siRes" class="result"></div></div>
+<div class="card"><h3>Clearance de creatinina — Cockcroft-Gault</h3><label>Idade</label><input id="cg_age" type="number"><label>Peso (kg)</label><input id="cg_weight" type="number"><label>Creatinina</label><input id="cg_cr" type="number" step=".1"><label>Sexo</label><select id="cg_sex"><option>Masculino</option><option>Feminino</option></select><button class="primary" onclick="cg()">Calcular</button><div id="cgRes" class="result"></div></div>
+</div></div>
+
+<div class="card"><h2>Índices complementares</h2>
+<table><thead><tr><th>Índice</th><th>Uso</th><th>Observação</th></tr></thead>
+<tbody>
+<tr><td>SOFA</td><td>Disfunção orgânica</td><td>Sepsis/gravidade; não é uma previsão individual exata.</td></tr>
+<tr><td>qSOFA</td><td>Triagem de risco em suspeita de infecção</td><td>Não substitui avaliação clínica ou SOFA.</td></tr>
+<tr><td>NEWS2</td><td>Deterioração clínica</td><td>Usado principalmente para alerta fisiológico.</td></tr>
+<tr><td>APACHE II</td><td>Gravidade em UTI</td><td>Pode ser adicionado em versão ampliada com regras completas e categoria diagnóstica.</td></tr>
+<tr><td>CAM-ICU / RASS</td><td>Delirium e sedação</td><td>Documentação diária.</td></tr>
+<tr><td>Braden</td><td>Risco de lesão por pressão</td><td>Requer avaliação de enfermagem.</td></tr>
+<tr><td>Padua / IMPROVE</td><td>Risco tromboembólico</td><td>Aplicar conforme população e protocolo institucional.</td></tr>
+</tbody></table>
+</div>
+</section>
+
+<section id="balanco">
+<div class="card"><h2>Balanço hídrico</h2>
+<div class="grid">
+<div><label>Entradas 24h (mL)</label><input id="ent" type="number"></div>
+<div><label>Diurese (mL)</label><input id="diu" type="number"></div>
+<div><label>Outras perdas (mL)</label><input id="perdas" type="number"></div>
+<div><label>Peso atual (kg)</label><input id="balpeso" type="number" step=".1"></div>
+</div>
+<button class="primary" onclick="balanco()">Calcular</button><div id="balRes" class="result"></div>
+</div>
+</section>
+
+<section id="plano">
+<div class="card"><h2>Plano multiprofissional</h2>
+<div class="grid">
+<div><label>Objetivos do dia</label><textarea id="objetivos"></textarea></div>
+<div><label>Metas hemodinâmicas</label><textarea id="hemo"></textarea></div>
+<div><label>Metas ventilatórias</label><textarea id="vent"></textarea></div>
+<div><label>Antimicrobianos / culturas</label><textarea id="atb"></textarea></div>
+<div><label>Nutrição</label><textarea id="nutri"></textarea></div>
+<div><label>Mobilização / fisioterapia</label><textarea id="fisio"></textarea></div>
+<div><label>Dispositivos / prevenção de infecção</label><textarea id="dispositivos"></textarea></div>
+<div><label>Critérios de desmame / alta UTI</label><textarea id="alta"></textarea></div>
+</div>
+<div class="actions"><button class="primary" onclick="salvar()">Salvar visita</button><button class="secondary" onclick="salvarESincronizar()">Salvar e sincronizar</button><button class="secondary" onclick="window.print()">Imprimir / PDF</button></div>
+</div>
+</section>
+
+<section id="historico">
+<div class="card"><h2>Sincronização entre dispositivos</h2>
+<p style="font-size:12px;color:#607080">Configure a URL do seu backend para sincronizar os registros entre celulares e computadores.</p>
+<label>URL de sincronização</label><input id="syncUrl" type="url" placeholder="https://...">
+<div class="actions"><button class="primary" onclick="salvarConfigSync()">Salvar URL</button><button class="secondary" onclick="testarSync()">Testar conexão</button><button class="secondary" onclick="sincronizarAgora()">Sincronizar agora</button></div>
+<div id="syncStatus" class="result">Sincronização não configurada.</div>
+</div>
+<div class="card"><h2>Visitas salvas neste aparelho</h2>
+<div id="history"></div>
+<div class="actions"><button class="secondary" onclick="exportar()">Exportar JSON</button><button class="secondary" onclick="importarArquivo()">Importar JSON</button><button class="secondary" onclick="limpar()">Apagar histórico local</button></div>
+<input id="importFile" type="file" accept=".json,application/json" class="hidden" onchange="processarImportacao(event)">
+</div>
+</section>
+</main>
+<footer>UTI Multidisciplinar Pro — ferramenta de apoio e documentação. Validar fórmulas, limites e protocolos com a instituição antes do uso clínico.</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('main section').forEach(s=>s.classList.remove('active'));$(b.dataset.tab).classList.add('active');if(b.dataset.tab==='historico')renderHistory();if(b.dataset.tab==='dashboard')atualizarDashboard();});
+$('data').value=new Date().toISOString().slice(0,10);
+
+function n(id){const v=parseFloat($(id).value);return Number.isFinite(v)?v:null}
+
+function atualizarDashboard(){
+  $('dashPatient').textContent=(($('nome')?.value||'')+' • Leito '+($('leito')?.value||'—')).trim();
+  $('dashProblems').textContent=$('problemas')?.value||'—';
+  $('dashGoals').textContent=$('objetivos')?.value||'—';
+  $('dashPlan').textContent=$('atb')?.value||'—';
+  const ent=n('ent'),diu=n('diu'),per=n('perdas');
+  $('dashBalanco').textContent=(ent!=null&&diu!=null&&per!=null)?(ent-diu-per):'—';
+  const pao=n('pao2'),fio=n('fio2');
+  $('dashPF').textContent=(pao!=null&&fio>0)?(pao/(fio/100)).toFixed(0):'—';
+  $('dashAminas').textContent=n('norad')!=null?'Noradrenalina':'—';
+  const ids=['dev_tot','dev_tqt','dev_cvc','dev_picc','dev_art','dev_svd','dev_dialysis','dev_sng','dev_sne','dev_gtt','dev_chest','dev_surgical','dev_other'];
+  $('dashDevices').textContent=ids.filter(id=>$(id)&&$(id).value.trim()).length;
+  calcularScores();
+  $('dashSofa').textContent=$('sofaMini').textContent;
+  $('dashQsofa').textContent=$('qsofaMini').textContent;
+  $('dashNews').textContent=$('newsMini').textContent;
+  const txt=$('sapsResult')?.innerText||'';
+  const m=txt.match(/(\d+)\s*pontos/);
+  $('dashSaps').textContent=m?m[1]:'—';
+}
+
+function calcularScores(){
+ let g=n('glasgow'), pas=n('pas'), fc=n('fc'), temp=n('temp'), spo=n('spo2'), fio=n('fio2'), pao=n('pao2'), cr=n('creat'), bili=n('bili'), plaq=n('plaq'), nor=n('norad');
+ let sofa=0;
+ if(pao!=null&&fio!=null){let pf=pao/(fio/100);sofa+=pf<100&&spo!=null?4:pf<200?3:pf<300?2:pf<400?1:0}
+ if(plaq!=null) sofa+=plaq<20?4:plaq<50?3:plaq<100?2:plaq<150?1:0;
+ if(bili!=null) sofa+=bili>=12?4:bili>=6?3:bili>=2?2:bili>=1.2?1:0;
+ if(pas!=null||nor!=null) sofa+=nor!=null&&nor>0.1?3:nor!=null&&nor>0.01?2:pas!=null&&pas<70?1:0;
+ if(g!=null) sofa+=g<6?4:g<10?3:g<13?2:g<15?1:0;
+ if(cr!=null) sofa+=cr>=5?4:cr>=3.5?3:cr>=2?2:cr>=1.2?1:0;
+ let q=0;if(pas!=null&&pas<=100)q++;if(fc!=null&&fc>22)q++;if(g!=null&&g<15)q++;
+ let news=0;
+ if(spo!=null)news+=spo<=91?3:spo<=93?2:spo<=95?1:0;
+ if(fc!=null)news+=fc>=131?3:fc>=111?2:fc>=91?1:fc<=40?3:0;
+ if(pas!=null)news+=pas<=90?3:pas<=100?2:pas<=110?1:0;
+ if(temp!=null)news+=temp<=35?3:temp<=36?1:temp>=39.1?2:temp>=38.1?1:0;
+ if(g!=null&&g<15)news+=3;
+ if(fio!=null&&fio>21)news+=2;
+ $('scoreResult').innerHTML=`<b>SOFA:</b> ${sofa} &nbsp; <b>qSOFA:</b> ${q} &nbsp; <b>NEWS2 simplificado:</b> ${news}<br><small>Os componentes de SOFA/NEWS2 devem ser conferidos contra o protocolo institucional; esta tela é uma calculadora auxiliar.</small>`;
+ $('sofaMini').textContent=sofa;$('qsofaMini').textContent=q;$('newsMini').textContent=news;$('gcsMini').textContent=g??'—';
+$('dashSofa').textContent=sofa;$('dashQsofa').textContent=q;$('dashNews').textContent=news;
+}
+
+function calcularSAPS(){
+ const age=n('s_age'),pas=n('s_pas'),fc=n('s_fc'),temp=n('s_temp'),gcs=n('s_gcs'),wbc=n('s_wbc'),pl=n('s_plaq'),urea=n('s_urea'),na=n('s_na'),k=n('s_k'),b=n('s_bili'),pao=n('s_pao2'),fio=n('s_fio2');
+ let s=0;
+ if(age!=null)s+=age<40?0:age<60?5:age<70?9:age<75?13:age<80?15:18;
+ if(pas!=null)s+=pas<40?11:pas<70?8:pas<120?3:pas<150?0:pas<200?4:7;
+ if(fc!=null)s+=fc<40?7:fc<70?2:fc<120?0:fc<160?4:5;
+ if(temp!=null)s+=temp<35?5:temp<38.5?0:temp<39?3:5;
+ if(gcs!=null)s+=15-gcs;
+ if(wbc!=null)s+=wbc<1?12:wbc<3?7:wbc<15?0:wbc<40?3:9;
+ if(pl!=null)s+=pl<20?15:pl<50?8:pl<100?5:pl<150?1:0;
+ if(urea!=null)s+=urea<28?0:urea<60?6:urea<120?10:15;
+ if(na!=null)s+=na<125?5:na<130?3:na<145?0:na<150?1:2;
+ if(k!=null)s+=k<3?3:k<3.5?0:k<5?0:k<6?3:5;
+ if(b!=null)s+=b<2?0:b<6?4:b<12?9:12;
+ if(pao!=null&&fio!=null){const pf=pao/(fio/100);s+=pf<100?11:pf<200?9:pf<300?6:pf<400?3:0}
+ const adm=$('s_adm').value;if(adm==='Cirurgia não programada')s+=8;if(adm==='Médica')s+=0;
+ if($('s_inf').value==='Sim')s+=5;
+ // General SAPS 3 equation (customarily used as standardized mortality estimate).
+ const logit=-32.6659+0.0737*s+0.9971*Math.log(s+1);
+ const mort=100/(1+Math.exp(-logit));
+ $('sapsResult').innerHTML=`<div class="big">${s} pontos</div><b>Estimativa de mortalidade hospitalar pelo modelo geral SAPS 3: ${mort.toFixed(1)}%</b><br><small>O cálculo acima é uma estimativa populacional do modelo; não representa prognóstico individual nem substitui julgamento clínico.</small>`;
+}
+
+function imc(){let p=n('imc_peso'),a=n('imc_alt');$('imcRes').textContent=p&&a?(p/(a*a)).toFixed(1)+' kg/m²':'Preencha os campos'}
+function pf(){let p=n('pf_pao2'),f=n('pf_fio2');$('pfRes').textContent=p&&f?(p/f).toFixed(0):'Preencha os campos'}
+function pam(){let a=n('pam_pas'),d=n('pam_pad');$('pamRes').textContent=a&&d?((a+2*d)/3).toFixed(0)+' mmHg':'Preencha os campos'}
+function ag(){let na=n('ag_na'),cl=n('ag_cl'),h=n('ag_hco3');$('agRes').textContent=na!=null&&cl!=null&&h!=null?(na-cl-h).toFixed(1)+' mEq/L':'Preencha os campos'}
+function si(){let f=n('si_fc'),p=n('si_pas');$('siRes').textContent=f&&p?(f/p).toFixed(2):'Preencha os campos'}
+function cg(){let a=n('cg_age'),w=n('cg_weight'),c=n('cg_cr'),sex=$('cg_sex').value;if(a&&w&&c){let x=((140-a)*w)/(72*c);if(sex==='Feminino')x*=.85;$('cgRes').textContent=x.toFixed(1)+' mL/min'}else $('cgRes').textContent='Preencha os campos'}
+function balanco(){let e=n('ent'),d=n('diu'),p=n('perdas'),w=n('balpeso');if(e!=null&&d!=null&&p!=null){let b=e-d-p;let mlkg=w?b/w:null;$('balRes').innerHTML=`Balanço: <b>${b} mL</b>${mlkg!=null?' • '+mlkg.toFixed(1)+' mL/kg':''}`}}
+
+function revisarDispositivos(){
+ const ids=['dev_tot','dev_tqt','dev_cvc','dev_picc','dev_art','dev_svd','dev_dialysis','dev_sng','dev_sne','dev_gtt','dev_chest','dev_surgical','dev_other'];
+ const ativos=ids.filter(id=>$(id)&&$(id).value.trim()).length;
+ $('devResult').innerHTML=`<b>${ativos}</b> dispositivo(s)/registro(s) preenchido(s).<br><small>Confirmar indicação, data de inserção, necessidade de permanência, sinais de infecção e possibilidade de retirada em cada visita.</small>`;
+}
+function allFields(){const o={};document.querySelectorAll('input,select,textarea').forEach(x=>{if(x.id)o[x.id]=x.value});return o}
+function localHistory(){try{return JSON.parse(localStorage.getItem('uti_visitas')||'[]')}catch(e){return[]}}
+function setLocalHistory(h){localStorage.setItem('uti_visitas',JSON.stringify(h.slice(0,500)))}
+function getSyncUrl(){return (localStorage.getItem('uti_sync_url')||'').trim().replace(/\/+$/,'')}
+function setSyncStatus(msg,ok=false){const el=$('syncStatus');if(el){el.innerHTML=msg;el.style.borderLeftColor=ok?'#168a52':'#0b5cab'}}
+
+function salvar(){
+ const h=localHistory();
+ const record={id:(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random()),saved:new Date().toISOString(),data:allFields()};
+ h.unshift(record);setLocalHistory(h);renderHistory();alert('Visita salva neste aparelho.');
+}
+async function salvarESincronizar(){
+ const h=localHistory();
+ const record={id:(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random()),saved:new Date().toISOString(),data:allFields()};
+ h.unshift(record);setLocalHistory(h);renderHistory();
+ if(getSyncUrl()) await enviarRegistros([record]); else alert('Visita salva localmente. Configure a URL na aba Histórico.');
+}
+function renderHistory(){let h=localHistory();$('history').innerHTML=h.length?h.map((x,i)=>`<div class="card"><b>${x.data.nome||'Paciente sem identificação'}</b> — leito ${x.data.leito||'—'}<br><small>${new Date(x.saved).toLocaleString('pt-BR')}</small><div class="actions"><button class="secondary" onclick="carregar(${i})">Carregar</button></div></div>`).join(''):'Nenhuma visita salva.'}
+function carregar(i){let h=localHistory();if(!h[i])return;Object.entries(h[i].data).forEach(([k,v])=>{if($(k))$(k).value=v});alert('Visita carregada.');document.querySelector('[data-tab="paciente"]').click()}
+function exportar(){const b=new Blob([JSON.stringify(localHistory(),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='uti_visitas.json';a.click()}
+function importarArquivo(){$('importFile').click()}
+function processarImportacao(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const incoming=JSON.parse(r.result);if(!Array.isArray(incoming))throw new Error('Formato inválido');const map=new Map(localHistory().map(x=>[x.id||x.saved,x]));incoming.forEach(x=>map.set(x.id||x.saved,x));setLocalHistory([...map.values()].sort((a,b)=>new Date(b.saved)-new Date(a.saved)));renderHistory();alert('Importação concluída.')}catch(e){alert('Não foi possível importar: '+e.message)}};r.readAsText(f);ev.target.value=''}
+function limpar(){if(confirm('Apagar todo o histórico deste aparelho?')){localStorage.removeItem('uti_visitas');renderHistory()}}
+function salvarConfigSync(){
+ const u=($('syncUrl').value||'').trim().replace(/\/+$/,'');
+ if(!u){setSyncStatus('Informe a URL de sincronização.');return}
+ localStorage.setItem('uti_sync_url',u);
+ $('syncUrl').value=u;
+ setSyncStatus('URL salva. Agora toque em "Testar conexão".');
+}
+function jsonp(action){
+ return new Promise((resolve,reject)=>{
+   const u=getSyncUrl();
+   if(!u){reject(new Error('URL não configurada'));return}
+   const cb='utiSyncCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+   const script=document.createElement('script');
+   let done=false;
+   const cleanup=()=>{if(script.parentNode)script.parentNode.removeChild(script);try{delete window[cb]}catch(e){window[cb]=undefined}};
+   const timer=setTimeout(()=>{if(done)return;done=true;cleanup();reject(new Error('Tempo limite de conexão'))},15000);
+   window[cb]=(data)=>{if(done)return;done=true;clearTimeout(timer);cleanup();resolve(data)};
+   script.onerror=()=>{if(done)return;done=true;clearTimeout(timer);cleanup();reject(new Error('Não foi possível acessar o servidor'))};
+   script.src=u+'?action='+encodeURIComponent(action)+'&callback='+encodeURIComponent(cb)+'&_='+Date.now();
+   document.head.appendChild(script);
+ });
+}
+async function testarSync(){
+ const u=getSyncUrl();
+ if(!u){setSyncStatus('Configure primeiro a URL de sincronização.');return}
+ try{
+   setSyncStatus('Testando conexão...');
+   const j=await jsonp('ping');
+   if(!j||!j.ok) throw new Error((j&&j.error)||'Resposta inválida');
+   setSyncStatus('CONEXÃO OK — servidor UTI Multidisciplinar Pro respondeu.',true);
+ }catch(e){setSyncStatus('Falha na conexão: '+e.message)}
+}
+async function enviarRegistros(records){
+ const u=getSyncUrl(); if(!u)return;
+ try{
+   setSyncStatus('Enviando registros...');
+   await fetch(u,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({action:'upsert',records})});
+   setSyncStatus('ENVIO REALIZADO. Toque em "Sincronizar agora" para confirmar.',true);
+ }catch(e){setSyncStatus('Falha no envio: '+e.message)}
+}
+async function sincronizarAgora(){
+ const u=getSyncUrl();
+ if(!u){setSyncStatus('Configure primeiro a URL de sincronização.');return}
+ try{
+   setSyncStatus('Baixando registros...');
+   const j=await jsonp('list');
+   if(!j||!j.ok) throw new Error((j&&j.error)||'Resposta inválida');
+   const map=new Map(localHistory().map(x=>[x.id||x.saved,x]));
+   (j.records||[]).forEach(x=>map.set(x.id||x.saved,x));
+   setLocalHistory([...map.values()].sort((a,b)=>new Date(b.saved)-new Date(a.saved)));
+   renderHistory();
+   setSyncStatus(`SINCRONIZAÇÃO CONCLUÍDA: ${j.records?.length||0} registro(s) recebidos.`,true);
+ }catch(e){setSyncStatus('Falha ao sincronizar: '+e.message)}
+}
+const _syncDefault='https://script.google.com/macros/s/AKfycbwScclD3E13JC68WbG0ty0VsxBfc1sEdZwuP3sm0FocQptqlTz4f7HKzELAbmhoN5hsaQ/exec';
+const _savedSync=localStorage.getItem('uti_sync_url')||_syncDefault;
+$('syncUrl').value=_savedSync;
+localStorage.setItem('uti_sync_url',_savedSync);
+renderHistory();
+</script>
+</body>
+</html>
