@@ -499,5 +499,561 @@ $('syncUrl').value=_savedSync;
 localStorage.setItem('uti_sync_url',_savedSync);
 renderHistory();
 </script>
-</body>
+<!-- ===== SUPABASE - LOGIN E SINCRONIZAÇÃO EM NUVEM ===== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+(function () {
+
+  const SUPABASE_URL = 'https://koajrdswuqxpxbivbpgf.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_11um8ZEqVuNBoQDQnyCXVw_s-nscv_4';
+
+  const SB = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: false
+      }
+    }
+  );
+
+  window.SB = SB;
+
+  let usuarioAtual = null;
+  let sincronizando = false;
+  let timerSync = null;
+
+  /* ---------- TELA DE LOGIN ---------- */
+
+  function criarLogin() {
+
+    if (document.getElementById('supabase-login')) return;
+
+    const tela = document.createElement('div');
+
+    tela.id = 'supabase-login';
+
+    tela.style.cssText = `
+      position:fixed;
+      inset:0;
+      z-index:999999;
+      background:#f5f7fa;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      font-family:Arial,sans-serif;
+    `;
+
+    tela.innerHTML = `
+      <div style="
+        width:100%;
+        max-width:420px;
+        background:white;
+        border-radius:22px;
+        padding:28px;
+        box-shadow:0 10px 40px rgba(0,0,0,.15);
+      ">
+
+        <div style="
+          text-align:center;
+          font-size:42px;
+          margin-bottom:10px;
+        ">🏥</div>
+
+        <h2 style="
+          text-align:center;
+          margin:0 0 8px;
+          color:#0b5cab;
+        ">
+          UTI Multidisciplinar Pro
+        </h2>
+
+        <p style="
+          text-align:center;
+          color:#666;
+          margin-bottom:24px;
+        ">
+          Acesso seguro e sincronização em nuvem
+        </p>
+
+        <input
+          id="sb-email"
+          type="email"
+          placeholder="E-mail"
+          autocomplete="username"
+          style="
+            width:100%;
+            box-sizing:border-box;
+            padding:14px;
+            margin-bottom:12px;
+            border:1px solid #ccc;
+            border-radius:10px;
+            font-size:16px;
+          "
+        >
+
+        <input
+          id="sb-password"
+          type="password"
+          placeholder="Senha"
+          autocomplete="current-password"
+          style="
+            width:100%;
+            box-sizing:border-box;
+            padding:14px;
+            margin-bottom:14px;
+            border:1px solid #ccc;
+            border-radius:10px;
+            font-size:16px;
+          "
+        >
+
+        <button
+          id="sb-login-btn"
+          style="
+            width:100%;
+            padding:15px;
+            border:0;
+            border-radius:10px;
+            background:#0b5cab;
+            color:white;
+            font-size:17px;
+            font-weight:bold;
+          "
+        >
+          ENTRAR
+        </button>
+
+        <div
+          id="sb-login-status"
+          style="
+            text-align:center;
+            margin-top:15px;
+            color:#c62828;
+            min-height:20px;
+          "
+        ></div>
+
+      </div>
+    `;
+
+    document.body.appendChild(tela);
+
+    document
+      .getElementById('sb-login-btn')
+      .addEventListener('click', entrar);
+
+    document
+      .getElementById('sb-password')
+      .addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') entrar();
+      });
+  }
+
+  async function entrar() {
+
+    const email =
+      document.getElementById('sb-email').value.trim();
+
+    const password =
+      document.getElementById('sb-password').value;
+
+    const status =
+      document.getElementById('sb-login-status');
+
+    const botao =
+      document.getElementById('sb-login-btn');
+
+    if (!email || !password) {
+      status.textContent = 'Digite e-mail e senha.';
+      return;
+    }
+
+    botao.disabled = true;
+    botao.textContent = 'ENTRANDO...';
+    status.textContent = '';
+
+    const { data, error } =
+      await SB.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+    if (error) {
+
+      status.textContent =
+        'Não foi possível entrar. Confira e-mail e senha.';
+
+      botao.disabled = false;
+      botao.textContent = 'ENTRAR';
+
+      console.error(error);
+
+      return;
+    }
+
+    usuarioAtual = data.user;
+
+    const tela =
+      document.getElementById('supabase-login');
+
+    if (tela) tela.remove();
+
+    mostrarUsuario();
+
+    await sincronizarComNuvem();
+  }
+
+  /* ---------- USUÁRIO ---------- */
+
+  function mostrarUsuario() {
+
+    let el =
+      document.getElementById('sb-cloud-status');
+
+    if (!el) {
+
+      el = document.createElement('div');
+
+      el.id = 'sb-cloud-status';
+
+      el.style.cssText = `
+        position:fixed;
+        right:10px;
+        bottom:10px;
+        z-index:99998;
+        background:#0b5cab;
+        color:white;
+        padding:8px 12px;
+        border-radius:20px;
+        font-size:12px;
+        box-shadow:0 3px 12px rgba(0,0,0,.2);
+      `;
+
+      document.body.appendChild(el);
+    }
+
+    el.innerHTML =
+      '☁️ Sincronizado • ' +
+      (usuarioAtual?.email || '');
+  }
+
+  function statusNuvem(texto, erro=false) {
+
+    const el =
+      document.getElementById('sb-cloud-status');
+
+    if (!el) return;
+
+    el.textContent = texto;
+
+    el.style.background =
+      erro ? '#c62828' : '#0b5cab';
+  }
+
+  /* ---------- UUID ---------- */
+
+  function uuid() {
+
+    if (crypto.randomUUID)
+      return crypto.randomUUID();
+
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+      .replace(/[xy]/g, function(c) {
+
+        const r = Math.random() * 16 | 0;
+
+        const v =
+          c === 'x'
+            ? r
+            : (r & 0x3 | 0x8);
+
+        return v.toString(16);
+      });
+  }
+
+  /* ---------- CONVERSÃO ---------- */
+
+  function obterNome(r) {
+
+    return (
+      r.nome ||
+      r.paciente ||
+      r.name ||
+      ''
+    );
+  }
+
+  function obterLeito(r) {
+
+    return (
+      r.leito ||
+      r.bed ||
+      ''
+    );
+  }
+
+  function obterData(r) {
+
+    return (
+      r.data ||
+      r.date ||
+      new Date().toISOString().slice(0,10)
+    );
+  }
+
+  /* ---------- ENVIA LOCAL PARA SUPABASE ---------- */
+
+  async function enviarParaNuvem() {
+
+    if (!usuarioAtual || sincronizando)
+      return;
+
+    if (typeof localHistory !== 'function')
+      return;
+
+    const lista = localHistory() || [];
+
+    if (!Array.isArray(lista))
+      return;
+
+    sincronizando = true;
+
+    try {
+
+      statusNuvem('☁️ Enviando registros...');
+
+      const registros = [];
+
+      for (const itemOriginal of lista) {
+
+        const item =
+          Object.assign({}, itemOriginal);
+
+        const cloudId =
+          item._cloudId || uuid();
+
+        item._cloudId = cloudId;
+
+        registros.push({
+          id: cloudId,
+          user_id: usuarioAtual.id,
+          nome: obterNome(item),
+          leito: obterLeito(item),
+          data: obterData(item),
+          dados: item
+        });
+      }
+
+      if (registros.length) {
+
+        const { error } =
+          await SB
+            .from('visitas')
+            .upsert(
+              registros,
+              { onConflict:'id' }
+            );
+
+        if (error)
+          throw error;
+      }
+
+      /* Guarda os IDs criados no histórico local */
+
+      if (typeof setLocalHistory === 'function') {
+
+        setLocalHistory(registros.map(function(r) {
+          return r.dados;
+        }));
+      }
+
+      if (typeof renderHistory === 'function')
+        renderHistory();
+
+      statusNuvem('☁️ SINCRONIZADO');
+
+    } catch (e) {
+
+      console.error(e);
+
+      statusNuvem(
+        '⚠️ Falha na sincronização',
+        true
+      );
+
+    } finally {
+
+      sincronizando = false;
+    }
+  }
+
+  /* ---------- BAIXA DA NUVEM ---------- */
+
+  async function baixarDaNuvem() {
+
+    if (!usuarioAtual)
+      return;
+
+    statusNuvem('☁️ Baixando registros...');
+
+    const { data, error } =
+      await SB
+        .from('visitas')
+        .select('*')
+        .eq('user_id', usuarioAtual.id)
+        .order('updated_at', { ascending:false });
+
+    if (error) {
+
+      console.error(error);
+
+      statusNuvem(
+        '⚠️ Erro ao baixar dados',
+        true
+      );
+
+      return;
+    }
+
+    if (!Array.isArray(data))
+      return;
+
+    let locais = [];
+
+    if (typeof localHistory === 'function')
+      locais = localHistory() || [];
+
+    const mapa = new Map();
+
+    locais.forEach(function(item) {
+
+      if (item && item._cloudId)
+        mapa.set(item._cloudId, item);
+    });
+
+    data.forEach(function(row) {
+
+      if (!row.dados)
+        return;
+
+      const item =
+        Object.assign({}, row.dados, {
+          _cloudId: row.id
+        });
+
+      mapa.set(row.id, item);
+    });
+
+    const final =
+      Array.from(mapa.values());
+
+    if (typeof setLocalHistory === 'function')
+      setLocalHistory(final);
+
+    if (typeof renderHistory === 'function')
+      renderHistory();
+
+    statusNuvem('☁️ SINCRONIZAÇÃO CONCLUÍDA');
+  }
+
+  /* ---------- SINCRIZAÇÃO COMPLETA ---------- */
+
+  async function sincronizarComNuvem() {
+
+    if (!usuarioAtual)
+      return;
+
+    await baixarDaNuvem();
+
+    await enviarParaNuvem();
+
+  }
+
+  /* ---------- MONITORA ALTERAÇÕES DO APP ---------- */
+
+  function instalarMonitoramento() {
+
+    if (
+      typeof window.setLocalHistory !== 'function'
+    ) {
+      return;
+    }
+
+    const original =
+      window.setLocalHistory;
+
+    window.setLocalHistory =
+      function(valor) {
+
+        const resultado =
+          original.apply(this, arguments);
+
+        if (!sincronizando && usuarioAtual) {
+
+          clearTimeout(timerSync);
+
+          timerSync =
+            setTimeout(function() {
+              enviarParaNuvem();
+            }, 1200);
+        }
+
+        return resultado;
+      };
+  }
+
+  /* ---------- LOGOUT ---------- */
+
+  window.sairDaNuvem =
+    async function() {
+
+      await SB.auth.signOut();
+
+      usuarioAtual = null;
+
+      location.reload();
+    };
+
+  /* ---------- INICIALIZAÇÃO ---------- */
+
+  async function iniciar() {
+
+    criarLogin();
+
+    const { data } =
+      await SB.auth.getSession();
+
+    if (data && data.session) {
+
+      usuarioAtual =
+        data.session.user;
+
+      const tela =
+        document.getElementById('supabase-login');
+
+      if (tela)
+        tela.remove();
+
+      mostrarUsuario();
+
+      instalarMonitoramento();
+
+      await sincronizarComNuvem();
+
+    } else {
+
+      instalarMonitoramento();
+    }
+
+  }
+
+  iniciar();
+
+})();
+</script></body>
 </html>
